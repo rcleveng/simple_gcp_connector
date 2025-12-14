@@ -6,6 +6,7 @@ readme = "README.md"
 authors = [{ name = "Rob Clevenger", email = "rob@robsite.org" }]
 requires-python = ">=3.13"
 dependencies = ["google-auth>=2.43.0", "requests>=2.32.5"]
+license = "Apache-2.0"
 
 [project.optional-dependencies]
 sqlalchemy = ["sqlalchemy>=2.0.0"]
