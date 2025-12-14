@@ -1,6 +1,6 @@
 [project]
 name = "simple_gcp_connector"
-version = "0.1.1"
+version = "0.1.2"
 description = "A simple connector for GCP databases"
 readme = "README.md"
 authors = [{ name = "Rob Clevenger", email = "rob@robsite.org" }]
@@ -14,6 +14,10 @@ psycopg-pool = ["psycopg>=3.1.0", "psycopg-pool>=3.1.0"]
 [build-system]
 requires = ["uv_build>=0.9.10,<0.10.0"]
 build-backend = "uv_build"
+
+[project.urls]
+Homepage = "https://github.com/rcleveng/simple_gcp_connector"
+Issues = "https://github.com/rcleveng/simple_gcp_connector/issues"
 
 [dependency-groups]
 dev = [
