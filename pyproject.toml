@@ -1,6 +1,6 @@
 [project]
 name = "simple_gcp_connector"
-version = "0.1.0"
+version = "0.1.1"
 description = "A simple connector for GCP databases"
 readme = "README.md"
 authors = [{ name = "Rob Clevenger", email = "rob@robsite.org" }]
@@ -18,9 +18,13 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "dotenv>=0.9.9",
+    "id>=1.5.0",
     "psycopg>=3.3.2",
+    "pypi>=2.1",
     "pytest>=9.0.2",
     "sqlalchemy>=2.0.45",
+    "tool>=0.8.0",
+    "twine>=6.2.0",
 ]
 
 [tool.pytest.ini_options]
@@ -28,3 +32,14 @@ markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
 ]
 addopts = "-m 'not integration'"
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://upload.pypi.org/legacy/"
