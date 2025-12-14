@@ -1,0 +1,12 @@
+feat: Implement Google Cloud SQL IAM database authentication
+
+Introduces a new module `simple_gcp_connector` to facilitate secure connections to Google Cloud SQL databases using IAM authentication.
+
+Key features include:
+- `GoogleCloudTokenProvider` for dynamic IAM token generation.
+- `CloudSqlInstance` for resolving Cloud SQL instance metadata and IP addresses.
+- Integration with `psycopg` (via `GoogleCloudConnInfoProvider`) for connection pooling with IAM.
+- Integration with `SQLAlchemy` (via `register_connector`) for dynamic connection arguments and IAM.
+- Comprehensive unit and integration tests to ensure functionality.
+- Updated `README.md` with detailed usage instructions and examples.
+- Initial project setup with `pyproject.toml`, `.gitignore`, and `.python-version`.

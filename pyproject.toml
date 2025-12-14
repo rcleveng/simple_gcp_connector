@@ -1,0 +1,30 @@
+[project]
+name = "simple_gcp_connector"
+version = "0.1.0"
+description = "A simple connector for GCP databases"
+readme = "README.md"
+authors = [{ name = "Rob Clevenger", email = "rob@robsite.org" }]
+requires-python = ">=3.13"
+dependencies = ["google-auth>=2.43.0", "requests>=2.32.5"]
+
+[project.optional-dependencies]
+sqlalchemy = ["sqlalchemy>=2.0.0"]
+psycopg-pool = ["psycopg>=3.1.0", "psycopg-pool>=3.1.0"]
+
+[build-system]
+requires = ["uv_build>=0.9.10,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "dotenv>=0.9.9",
+    "psycopg>=3.3.2",
+    "pytest>=9.0.2",
+    "sqlalchemy>=2.0.45",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]
+addopts = "-m 'not integration'"
