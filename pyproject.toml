@@ -1,6 +1,6 @@
 [project]
-name = "simple_gcp_connector"
-version = "0.1.3"
+name = "simple-gcp-connector"
+version = "0.1.4"
 description = "A simple connector for GCP databases"
 readme = "README.md"
 authors = [{ name = "Rob Clevenger", email = "rob@robsite.org" }]
