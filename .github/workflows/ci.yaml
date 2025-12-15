@@ -21,6 +21,9 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras --dev
       - name: Run tests
+        env:
+          INSTANCE_CONNECTION_NAME: ${{ secrets.INSTANCE_CONNECTION_NAME }}
+          IAM_USER: ${{ secrets.IAM_USER }}
         run: uv run pytest
 
   publish:
