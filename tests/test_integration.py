@@ -23,6 +23,7 @@ DEFAULT_SQLALCHEMY_DB_URL = (
 )
 
 
+@pytest.mark.integration
 def test_get_token():
     token_provider = GoogleCloudTokenProvider()
     token = token_provider.get_token()
