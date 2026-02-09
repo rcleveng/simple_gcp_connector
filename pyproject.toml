@@ -13,7 +13,7 @@ sqlalchemy = ["sqlalchemy>=2.0.0"]
 psycopg-pool = ["psycopg>=3.1.0", "psycopg-pool>=3.1.0"]
 
 [build-system]
-requires = ["uv_build>=0.9.10,<0.10.0"]
+requires = ["uv_build>=0.9.10,<0.11.0"]
 build-backend = "uv_build"
 
 [project.urls]
