@@ -8,13 +8,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-INSTANCE_CONNECTION_NAME = os.getenv("INSTANCE_CONNECTION_NAME")
-if not INSTANCE_CONNECTION_NAME:
-    raise ValueError("INSTANCE_CONNECTION_NAME is not set")
-
-IAM_USER = os.getenv("IAM_USER")
-if not IAM_USER:
-    raise ValueError("IAM_USER is not set")
+INSTANCE_CONNECTION_NAME = os.getenv("INSTANCE_CONNECTION_NAME", "")
+IAM_USER = os.getenv("IAM_USER", "")
 
 ENCODED_IAM_USER = urllib.parse.quote(IAM_USER)
 DEFAULT_DB_URL = f"postgresql://{ENCODED_IAM_USER}@localhost/postgres"

@@ -1,12 +1,17 @@
-from typing import Optional
+from typing import Union, Optional
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from .token_provider import GoogleCloudTokenProvider
 from .cloud_sql import CloudSqlInstance, IpType
 
+try:
+    from sqlalchemy.ext.asyncio import AsyncEngine
+except ImportError:
+    AsyncEngine = None
+
 
 def register_connector(
-    engine: Engine,
+    engine: Union[Engine, "AsyncEngine"],
     token_provider: Optional[GoogleCloudTokenProvider] = None,
     instance_connection_name: Optional[str] = None,
     ip_type: IpType = IpType.PUBLIC,
@@ -17,7 +22,7 @@ def register_connector(
     and optionally configure the host IP for a Cloud SQL instance.
 
     Args:
-        engine: The SQLAlchemy Engine to register the hook on.
+        engine: The SQLAlchemy Engine or AsyncEngine to register the hook on.
         token_provider: Optional provider for IAM tokens.
         instance_connection_name: Optional Cloud SQL connection name in the format
             "project:region:instance". If provided, the instance IP will be resolved
@@ -27,7 +32,7 @@ def register_connector(
 
     Usage:
         engine = create_engine("postgresql+psycopg://user@/db")
-        register_iam_auth(engine, instance_connection_name="my-proj:us-central1:my-inst")
+        register_connector(engine, instance_connection_name="my-proj:us-central1:my-inst")
     """
     host: Optional[str] = None
     if instance_connection_name:
@@ -37,7 +42,11 @@ def register_connector(
     if enable_iam_auth and token_provider is None:
         token_provider = GoogleCloudTokenProvider()
 
-    @event.listens_for(engine, "do_connect")
+    # AsyncEngine does not support event listeners directly;
+    # register on the underlying sync_engine instead.
+    event_target = engine.sync_engine if AsyncEngine and isinstance(engine, AsyncEngine) else engine
+
+    @event.listens_for(event_target, "do_connect")
     def receive_do_connect(dialect, conn_rec, cargs, cparams):
         if host:
             cparams["host"] = host
