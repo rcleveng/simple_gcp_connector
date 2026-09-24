@@ -98,6 +98,32 @@ engine = create_engine("postgresql+psycopg://user@127.0.0.1:5432/db")
 register_connector(engine)
 ```
 
+## Timeouts and Retries
+
+When you pass `instance_connection_name`, the connector looks up the instance
+through the Cloud SQL Admin API once, when `GoogleCloudConnInfoProvider` or
+`register_connector` is called. That lookup retries transient failures up to 3
+times with exponential backoff and jitter: connection errors, read timeouts,
+and HTTP 408, 429, 500, 502, 503 and 504. It honors `Retry-After`, capped at
+30 seconds. Other errors, such as 403 (missing permission) or 404 (no such
+instance), raise `requests.HTTPError` at once.
+
+Each request to the Admin API and the token endpoint waits at most `timeout`
+seconds, `(5, 15)` (connect, read) by default. Pass `timeout=` to change it:
+
+```python
+register_connector(
+    engine, instance_connection_name=INSTANCE_CONNECTION_NAME, timeout=(3, 10)
+)
+
+get_conninfo = GoogleCloudConnInfoProvider(
+    DATABASE_URL, instance_connection_name=INSTANCE_CONNECTION_NAME, timeout=(3, 10)
+)
+```
+
+A `token_provider` you construct yourself takes its own `timeout`:
+`GoogleCloudTokenProvider(timeout=(3, 10))`.
+
 ## Setup Notes
 
 - Ensure the Service Account (or user) has the `Cloud SQL Client` role and is added as an IAM user in the Cloud SQL instance.

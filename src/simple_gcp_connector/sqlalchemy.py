@@ -2,7 +2,7 @@ from typing import Union, Optional
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from .token_provider import GoogleCloudTokenProvider
-from .cloud_sql import CloudSqlInstance, IpType
+from .cloud_sql import DEFAULT_TIMEOUT, CloudSqlInstance, IpType, Timeout
 
 try:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -16,6 +16,7 @@ def register_connector(
     instance_connection_name: Optional[str] = None,
     ip_type: IpType = IpType.PUBLIC,
     enable_iam_auth: bool = True,
+    timeout: Timeout = DEFAULT_TIMEOUT,
 ) -> None:
     """
     Registers an event listener to inject IAM tokens into the connection password
@@ -29,6 +30,9 @@ def register_connector(
             and used as the host.
         ip_type: The type of IP to resolve (PUBLIC or PRIVATE). Defaults to PUBLIC.
         enable_iam_auth: Whether to inject the IAM token as the password. Defaults to True.
+        timeout: Seconds to wait for each Admin API and token endpoint request, as a
+            single value or a (connect, read) tuple. Defaults to (5, 15). It does not
+            reach a token_provider you pass in; configure that one directly.
 
     Usage:
         engine = create_engine("postgresql+psycopg://user@/db")
@@ -36,11 +40,11 @@ def register_connector(
     """
     host: Optional[str] = None
     if instance_connection_name:
-        cloud_sql_instance = CloudSqlInstance(instance_connection_name)
+        cloud_sql_instance = CloudSqlInstance(instance_connection_name, timeout=timeout)
         host = cloud_sql_instance.get_host(ip_type)
 
     if enable_iam_auth and token_provider is None:
-        token_provider = GoogleCloudTokenProvider()
+        token_provider = GoogleCloudTokenProvider(timeout=timeout)
 
     # AsyncEngine does not support event listeners directly;
     # register on the underlying sync_engine instead.

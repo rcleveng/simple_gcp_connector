@@ -635,11 +635,12 @@ wheels = [
 
 [[package]]
 name = "simple-gcp-connector"
-version = "0.1.5"
+version = "0.1.6"
 source = { editable = "." }
 dependencies = [
     { name = "google-auth" },
     { name = "requests" },
+    { name = "urllib3" },
 ]
 
 [package.optional-dependencies]
@@ -672,6 +673,7 @@ requires-dist = [
     { name = "psycopg-pool", marker = "extra == 'psycopg-pool'", specifier = ">=3.1.0" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "sqlalchemy", marker = "extra == 'sqlalchemy'", specifier = ">=2.0.0" },
+    { name = "urllib3", specifier = ">=2.0" },
 ]
 provides-extras = ["sqlalchemy", "psycopg-pool"]
 
