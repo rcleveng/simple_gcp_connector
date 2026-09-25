@@ -84,7 +84,8 @@ class CloudSqlInstance:
         parts = instance_connection_name.split(":")
         if len(parts) != 3:
             raise ValueError(
-                "instance_connection_name must be in the format 'project:region:instance'"
+                "instance_connection_name must be in the format "
+                "'project:region:instance'"
             )
         self.project, _, self.instance = parts
         self.timeout = timeout
@@ -100,7 +101,10 @@ class CloudSqlInstance:
         self.metadata = self._fetch_metadata()
 
     def _fetch_metadata(self) -> dict:
-        url = f"{SQLADMIN_API_ENDPOINT}/sql/v1beta4/projects/{self.project}/instances/{self.instance}"
+        url = (
+            f"{SQLADMIN_API_ENDPOINT}/sql/v1beta4/projects/{self.project}"
+            f"/instances/{self.instance}"
+        )
         response = self._session.get(url, timeout=self.timeout)
         response.raise_for_status()
         return response.json()

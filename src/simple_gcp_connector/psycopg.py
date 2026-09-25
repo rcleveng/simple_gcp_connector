@@ -6,7 +6,8 @@ from .token_provider import GoogleCloudTokenProvider
 
 class GoogleCloudConnInfoProvider:
     """
-    A helper to provide dynamic connection info with fresh IAM tokens and optional host lookup.
+    A helper to provide dynamic connection info with fresh IAM tokens and optional
+    host lookup.
     Designed for use with psycopg_pool.ConnectionPool(conninfo=...)
 
     Usage:
