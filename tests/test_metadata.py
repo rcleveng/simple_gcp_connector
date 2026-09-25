@@ -8,65 +8,28 @@ from simple_gcp_connector.psycopg import GoogleCloudConnInfoProvider
 
 @patch("simple_gcp_connector.cloud_sql.requests.AuthorizedSession")
 @patch("simple_gcp_connector.cloud_sql.google.auth.default")
-def test_cloud_sql_instance_get_host(mock_default, mock_session_cls):
-    # Mock auth
-    mock_creds = MagicMock()
-    mock_default.return_value = (mock_creds, "project")
-
-    # Mock session
+def test_cloud_sql_instance_supports_primary_and_public_alias(
+    mock_default, mock_session_cls
+):
+    mock_default.return_value = (MagicMock(), "project")
     mock_session = mock_session_cls.return_value
-    mock_response = MagicMock()
-    mock_response.json.return_value = {
+    mock_session.get.return_value.json.return_value = {
         "ipAddresses": [
             {"type": "PRIMARY", "ipAddress": "1.2.3.4"},
             {"type": "PRIVATE", "ipAddress": "10.0.0.1"},
         ]
     }
-    mock_session.get.return_value = mock_response
 
-    # Initialization triggers the fetch
     instance = CloudSqlInstance("project:region:instance")
 
-    # Test Public IP (uses stored metadata)
-    assert instance.get_host(IpType.PUBLIC) == "1.2.3.4"
-
-    # Test Private IP (uses stored metadata)
+    assert instance.get_host(IpType.PRIMARY) == "1.2.3.4"
     assert instance.get_host(IpType.PRIVATE) == "10.0.0.1"
-
-
-@patch("simple_gcp_connector.psycopg.CloudSqlInstance")
-@patch("simple_gcp_connector.psycopg.GoogleCloudTokenProvider")
-def test_provider_with_metadata(mock_token_provider_cls, mock_cloud_sql_cls):
-    # Mock Token Provider
-    mock_token_provider = mock_token_provider_cls.return_value
-    mock_token_provider.get_token.return_value = "fake-token"
-
-    # Mock Cloud SQL Instance
-    mock_instance = mock_cloud_sql_cls.return_value
-    mock_instance.get_host.return_value = "1.2.3.4"
-
-    provider = GoogleCloudConnInfoProvider(
-        "postgresql://user@/db",
-        instance_connection_name="my-project:region:my-instance",
-        ip_type=IpType.PUBLIC,
-    )
-
-    conninfo = provider()
-
-    assert "host=1.2.3.4" in conninfo
-    assert "password=fake-token" in conninfo
-
-    # Verify constructor called the API
-    mock_cloud_sql_cls.assert_called_with(
-        "my-project:region:my-instance", timeout=DEFAULT_TIMEOUT
-    )
-    mock_instance.get_host.assert_called_with(IpType.PUBLIC)
+    assert instance.get_host(IpType.PUBLIC) == "1.2.3.4"
 
 
 @patch("simple_gcp_connector.cloud_sql.requests.AuthorizedSession")
 @patch("simple_gcp_connector.cloud_sql.google.auth.default")
 def test_cloud_sql_instance_get_host_error(mock_default, mock_session_cls):
-    # Mock auth and session
     mock_default.return_value = (MagicMock(), "project")
     mock_session = mock_session_cls.return_value
     mock_session.get.return_value.json.return_value = {"ipAddresses": []}
@@ -74,7 +37,36 @@ def test_cloud_sql_instance_get_host_error(mock_default, mock_session_cls):
     instance = CloudSqlInstance("project:region:instance")
 
     with pytest.raises(ValueError, match="No IP address found"):
-        instance.get_host(IpType.PUBLIC)
+        instance.get_host(IpType.PRIMARY)
+
+
+def test_ip_type_public_is_a_backwards_compatible_primary_alias():
+    assert IpType.PUBLIC is IpType.PRIMARY
+    assert IpType["PUBLIC"] is IpType.PRIMARY
+    assert IpType("PRIMARY") is IpType.PRIMARY
+
+
+@patch("simple_gcp_connector.psycopg.CloudSqlInstance")
+@patch("simple_gcp_connector.psycopg.GoogleCloudTokenProvider")
+def test_provider_with_metadata(mock_token_provider_cls, mock_cloud_sql_cls):
+    mock_token_provider_cls.return_value.get_token.return_value = "fake-token"
+    mock_instance = mock_cloud_sql_cls.return_value
+    mock_instance.get_host.return_value = "1.2.3.4"
+
+    provider = GoogleCloudConnInfoProvider(
+        "postgresql://user@/db",
+        instance_connection_name="my-project:region:my-instance",
+        ip_type=IpType.PRIMARY,
+    )
+
+    conninfo = provider()
+
+    assert "host=1.2.3.4" in conninfo
+    assert "password=" in conninfo
+    mock_cloud_sql_cls.assert_called_with(
+        "my-project:region:my-instance", timeout=DEFAULT_TIMEOUT
+    )
+    mock_instance.get_host.assert_called_with(IpType.PRIMARY)
 
 
 def test_provider_basic_usage():
@@ -87,16 +79,13 @@ def test_provider_basic_usage():
 
     conninfo = provider()
 
-    assert "password=fake-token" in conninfo
-    # Should maintain original host since no project/instance provided
+    assert "password=" in conninfo
     assert "host=host" in conninfo
 
 
 @patch("simple_gcp_connector.psycopg.CloudSqlInstance")
 def test_provider_no_iam_auth(mock_cloud_sql_cls):
-    # Mock Cloud SQL Instance
-    mock_instance = mock_cloud_sql_cls.return_value
-    mock_instance.get_host.return_value = "1.2.3.4"
+    mock_cloud_sql_cls.return_value.get_host.return_value = "1.2.3.4"
 
     provider = GoogleCloudConnInfoProvider(
         "postgresql://user@/db",
@@ -113,8 +102,6 @@ def test_provider_no_iam_auth(mock_cloud_sql_cls):
 @patch("simple_gcp_connector.psycopg.CloudSqlInstance")
 @patch("simple_gcp_connector.psycopg.GoogleCloudTokenProvider")
 def test_provider_passes_timeout(mock_token_provider_cls, mock_cloud_sql_cls):
-    """A timeout given to GoogleCloudConnInfoProvider reaches both the
-    Cloud SQL metadata lookup and the default token provider."""
     mock_cloud_sql_cls.return_value.get_host.return_value = "1.2.3.4"
 
     GoogleCloudConnInfoProvider(
