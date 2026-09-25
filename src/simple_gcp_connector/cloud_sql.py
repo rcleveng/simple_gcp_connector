@@ -90,7 +90,9 @@ class CloudSqlInstance:
         self._credentials, _ = google.auth.default(
             scopes=["https://www.googleapis.com/auth/sqlservice.admin"]
         )
-        self._session = requests.AuthorizedSession(self._credentials)
+        self._session = requests.AuthorizedSession(
+            self._credentials, refresh_timeout=timeout
+        )
         self._session.mount(
             f"{SQLADMIN_API_ENDPOINT}/", HTTPAdapter(max_retries=_admin_api_retry())
         )
