@@ -1,0 +1,12 @@
+[workspace]
+members = ["//"]
+
+[tasks]
+lint = { parallel = true }
+test = { parallel = false }
+build = { parallel = true }
+
+[defaults.python.tasks]
+lint = ["uv run ruff check", "uv run ruff format --check"]
+test = "uv run pytest"
+build = "uv build"

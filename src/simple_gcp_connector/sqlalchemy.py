@@ -31,14 +31,17 @@ def register_connector(
             "project:region:instance". If provided, the instance IP will be resolved
             and used as the host.
         ip_type: The type of IP to resolve (PUBLIC or PRIVATE). Defaults to PUBLIC.
-        enable_iam_auth: Whether to inject the IAM token as the password. Defaults to True.
+        enable_iam_auth: Whether to inject the IAM token as the password. Defaults
+            to True.
         timeout: Seconds to wait for each Admin API and token endpoint request, as a
             single value or a (connect, read) tuple. Defaults to (5, 15). It does not
             reach a token_provider you pass in; configure that one directly.
 
     Usage:
         engine = create_engine("postgresql+psycopg://user@/db")
-        register_connector(engine, instance_connection_name="my-proj:us-central1:my-inst")
+        register_connector(
+            engine, instance_connection_name="my-proj:us-central1:my-inst"
+        )
     """
     host: str | None = None
     if instance_connection_name:

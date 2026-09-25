@@ -124,3 +124,14 @@ A `token_provider` you construct yourself takes its own `timeout`:
 
 - Ensure the Service Account (or user) has the `Cloud SQL Client` role and is added as an IAM user in the Cloud SQL instance.
 - If youa `enable_iam_authentication` flag must be set to `on` for your Cloud SQL instance.
+
+## Development
+
+Tasks run through [ux](https://github.com/lairoai/ux) (`go install github.com/lairoai/ux/cmd/ux@latest`):
+
+```sh
+uv sync --all-extras --dev
+ux lint    # ruff check + ruff format --check
+ux test    # pytest (integration tests are deselected by default)
+ux build   # uv build
+```
