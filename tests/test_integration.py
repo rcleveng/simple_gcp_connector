@@ -1,10 +1,12 @@
-import pytest
+import os
 import urllib.parse
+
+import pytest
+from dotenv import load_dotenv
+from psycopg_pool import ConnectionPool
+
 from simple_gcp_connector.psycopg import GoogleCloudConnInfoProvider
 from simple_gcp_connector.token_provider import GoogleCloudTokenProvider
-from psycopg_pool import ConnectionPool
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -28,14 +30,13 @@ def test_get_token():
 @pytest.mark.integration
 def test_psycopg_end_to_end_cloudsql_proxy():
     get_conninfo = GoogleCloudConnInfoProvider(DEFAULT_DB_URL)
-    with ConnectionPool(conninfo=get_conninfo) as pool:
-        with pool.connection() as conn:
-            print("Connected!")
-            cursor = conn.cursor()
-            cursor.execute("SELECT version()")
-            result = cursor.fetchone()
-            print(f"Result: {result}")
-            assert result is not None
+    with ConnectionPool(conninfo=get_conninfo) as pool, pool.connection() as conn:
+        print("Connected!")
+        cursor = conn.cursor()
+        cursor.execute("SELECT version()")
+        result = cursor.fetchone()
+        print(f"Result: {result}")
+        assert result is not None
 
 
 @pytest.mark.integration
@@ -44,19 +45,19 @@ def test_psycopg_end_to_end_cloudql_direct():
         conninfo=f"postgresql://{ENCODED_IAM_USER}@TBD/postgres",
         instance_connection_name=INSTANCE_CONNECTION_NAME,
     )
-    with ConnectionPool(conninfo=get_conninfo) as pool:
-        with pool.connection() as conn:
-            print("Connected!")
-            cursor = conn.cursor()
-            cursor.execute("SELECT version()")
-            result = cursor.fetchone()
-            print(f"Result: {result}")
-            assert result is not None
+    with ConnectionPool(conninfo=get_conninfo) as pool, pool.connection() as conn:
+        print("Connected!")
+        cursor = conn.cursor()
+        cursor.execute("SELECT version()")
+        result = cursor.fetchone()
+        print(f"Result: {result}")
+        assert result is not None
 
 
 @pytest.mark.integration
 def test_sqlalchemy_end_to_end_cloudsql_proxy():
     from sqlalchemy import create_engine, text
+
     from simple_gcp_connector.sqlalchemy import register_connector
 
     engine = create_engine(
@@ -76,6 +77,7 @@ def test_sqlalchemy_end_to_end_cloudsql_proxy():
 @pytest.mark.integration
 def test_sqlalchemy_end_to_end_cloudql_direct():
     from sqlalchemy import create_engine, text
+
     from simple_gcp_connector.sqlalchemy import register_connector
     # The helper now supports looking up the instance IP automatically
 

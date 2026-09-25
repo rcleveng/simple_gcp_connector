@@ -31,20 +31,17 @@ from simple_gcp_connector.psycopg import GoogleCloudConnInfoProvider
 
 # Use the instance connection name (project:region:instance).
 INSTANCE_CONNECTION_NAME = "my-project:us-central1:my-instance"
-DB_USER = "your-sa-email@your-project.iam" # note there is no .gserviceaccount.com
-DB_NAME = "your-database-name" # likely postgres
+DB_USER = "your-sa-email@your-project.iam"  # note there is no .gserviceaccount.com
+DB_NAME = "your-database-name"  # likely postgres
 DATABASE_URL = f"postgresql://{DB_USER}@IGNORED-HOST/{DB_NAME}?sslmode=require"
+
 
 def create_pool():
     get_conninfo = GoogleCloudConnInfoProvider(
-        DATABASE_URL,
-        instance_connection_name=INSTANCE_CONNECTION_NAME
+        DATABASE_URL, instance_connection_name=INSTANCE_CONNECTION_NAME
     )
-    return ConnectionPool(
-        conninfo=get_conninfo,
-        min_size=1,
-        max_size=5
-    )
+    return ConnectionPool(conninfo=get_conninfo, min_size=1, max_size=5)
+
 
 # Usage
 with create_pool() as pool:
@@ -73,8 +70,7 @@ DB_USER = "your-sa-email@your-project.iam"
 DB_NAME = "your-database-name"
 
 engine = create_engine(
-    f"postgresql+psycopg://{DB_USER}@/{DB_NAME}",
-    connect_args={"sslmode": "require"}
+    f"postgresql+psycopg://{DB_USER}@/{DB_NAME}", connect_args={"sslmode": "require"}
 )
 
 register_connector(engine, instance_connection_name=INSTANCE_CONNECTION_NAME)
@@ -97,6 +93,32 @@ get_conninfo = GoogleCloudConnInfoProvider("postgresql://user@127.0.0.1:5432/db"
 engine = create_engine("postgresql+psycopg://user@127.0.0.1:5432/db")
 register_connector(engine)
 ```
+
+## Timeouts and Retries
+
+When you pass `instance_connection_name`, the connector looks up the instance
+through the Cloud SQL Admin API once, when `GoogleCloudConnInfoProvider` or
+`register_connector` is called. That lookup retries transient failures up to 3
+times with exponential backoff and jitter: connection errors, read timeouts,
+and HTTP 408, 429, 500, 502, 503 and 504. It honors `Retry-After`, capped at
+30 seconds. Other errors, such as 403 (missing permission) or 404 (no such
+instance), raise `requests.HTTPError` at once.
+
+Each request to the Admin API and the token endpoint waits at most `timeout`
+seconds, `(5, 15)` (connect, read) by default. Pass `timeout=` to change it:
+
+```python
+register_connector(
+    engine, instance_connection_name=INSTANCE_CONNECTION_NAME, timeout=(3, 10)
+)
+
+get_conninfo = GoogleCloudConnInfoProvider(
+    DATABASE_URL, instance_connection_name=INSTANCE_CONNECTION_NAME, timeout=(3, 10)
+)
+```
+
+A `token_provider` you construct yourself takes its own `timeout`:
+`GoogleCloudTokenProvider(timeout=(3, 10))`.
 
 ## Setup Notes
 

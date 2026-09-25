@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
-from simple_gcp_connector.cloud_sql import CloudSqlInstance, IpType
+
+from simple_gcp_connector.cloud_sql import DEFAULT_TIMEOUT, CloudSqlInstance, IpType
 from simple_gcp_connector.psycopg import GoogleCloudConnInfoProvider
 
 
@@ -55,7 +57,9 @@ def test_provider_with_metadata(mock_token_provider_cls, mock_cloud_sql_cls):
     assert "password=fake-token" in conninfo
 
     # Verify constructor called the API
-    mock_cloud_sql_cls.assert_called_with("my-project:region:my-instance")
+    mock_cloud_sql_cls.assert_called_with(
+        "my-project:region:my-instance", timeout=DEFAULT_TIMEOUT
+    )
     mock_instance.get_host.assert_called_with(IpType.PUBLIC)
 
 
@@ -104,3 +108,22 @@ def test_provider_no_iam_auth(mock_cloud_sql_cls):
 
     assert "host=1.2.3.4" in conninfo
     assert "password=" not in conninfo
+
+
+@patch("simple_gcp_connector.psycopg.CloudSqlInstance")
+@patch("simple_gcp_connector.psycopg.GoogleCloudTokenProvider")
+def test_provider_passes_timeout(mock_token_provider_cls, mock_cloud_sql_cls):
+    """A timeout given to GoogleCloudConnInfoProvider reaches both the
+    Cloud SQL metadata lookup and the default token provider."""
+    mock_cloud_sql_cls.return_value.get_host.return_value = "1.2.3.4"
+
+    GoogleCloudConnInfoProvider(
+        "postgresql://user@/db",
+        instance_connection_name="my-project:region:my-instance",
+        timeout=(1.0, 2.0),
+    )
+
+    mock_cloud_sql_cls.assert_called_with(
+        "my-project:region:my-instance", timeout=(1.0, 2.0)
+    )
+    mock_token_provider_cls.assert_called_with(timeout=(1.0, 2.0))

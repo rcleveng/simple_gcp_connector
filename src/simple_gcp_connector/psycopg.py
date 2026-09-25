@@ -1,7 +1,7 @@
-from typing import Optional
 from psycopg.conninfo import make_conninfo
+
+from .cloud_sql import DEFAULT_TIMEOUT, CloudSqlInstance, IpType, Timeout
 from .token_provider import GoogleCloudTokenProvider
-from .cloud_sql import CloudSqlInstance, IpType
 
 
 class GoogleCloudConnInfoProvider:
@@ -21,6 +21,10 @@ class GoogleCloudConnInfoProvider:
             ip_type=IpType.PUBLIC
         )
         pool = ConnectionPool(conninfo=get_conninfo)
+
+    timeout sets the (connect, read) seconds for each Admin API and token
+    endpoint request the provider makes. It does not reach a token_provider
+    you pass in; configure that one directly.
     """
 
     def __init__(
@@ -28,8 +32,9 @@ class GoogleCloudConnInfoProvider:
         conninfo: str,
         instance_connection_name: str | None = None,
         ip_type: IpType = IpType.PUBLIC,
-        token_provider: Optional[GoogleCloudTokenProvider] = None,
+        token_provider: GoogleCloudTokenProvider | None = None,
         enable_iam_auth: bool = True,
+        timeout: Timeout = DEFAULT_TIMEOUT,
     ) -> None:
         self.conninfo = conninfo
         self.host = None
@@ -37,13 +42,15 @@ class GoogleCloudConnInfoProvider:
 
         # Only initialize token provider if IAM auth is enabled
         if enable_iam_auth:
-            self.token_provider = token_provider or GoogleCloudTokenProvider()
+            self.token_provider = token_provider or GoogleCloudTokenProvider(
+                timeout=timeout
+            )
         else:
             self.token_provider = None
 
         # Fail fast: resolve host immediately if instance connection name is provided
         if instance_connection_name:
-            cloud_sql = CloudSqlInstance(instance_connection_name)
+            cloud_sql = CloudSqlInstance(instance_connection_name, timeout=timeout)
             self.host = cloud_sql.get_host(ip_type)
 
     def __call__(self) -> str:
