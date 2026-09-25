@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, patch
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine
+
 from simple_gcp_connector.sqlalchemy import register_connector
 from simple_gcp_connector.token_provider import GoogleCloudTokenProvider
 

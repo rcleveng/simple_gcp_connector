@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
+
 from simple_gcp_connector.cloud_sql import DEFAULT_TIMEOUT, CloudSqlInstance, IpType
 from simple_gcp_connector.psycopg import GoogleCloudConnInfoProvider
 

@@ -1,8 +1,9 @@
 from functools import partial
-from typing import List, Optional
+
 import google.auth
+from google.auth.credentials import Credentials, TokenState
 from google.auth.transport import requests
-from google.auth.credentials import TokenState, Credentials
+
 from .cloud_sql import DEFAULT_TIMEOUT, Timeout
 
 # Scope for Cloud SQL IAM login
@@ -25,7 +26,7 @@ class GoogleCloudTokenProvider:
     """
 
     def __init__(
-        self, scopes: Optional[List[str]] = None, timeout: Timeout = DEFAULT_TIMEOUT
+        self, scopes: list[str] | None = None, timeout: Timeout = DEFAULT_TIMEOUT
     ):
         self.scopes = scopes or CLOUDSQL_IAM_LOGIN_SCOPE
         self.timeout = timeout

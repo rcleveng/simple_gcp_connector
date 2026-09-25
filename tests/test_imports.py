@@ -10,6 +10,8 @@ def test_sqlalchemy_import():
 
 def test_psycopg_import():
     try:
-        from simple_gcp_connector.psycopg import GoogleCloudConnInfoProvider  # noqa: F401
+        from simple_gcp_connector.psycopg import (
+            GoogleCloudConnInfoProvider,  # noqa: F401
+        )
     except ImportError:
         pytest.fail("Could not import simple_gcp_connector.psycopg")

@@ -1,7 +1,7 @@
-from typing import Optional
 from psycopg.conninfo import make_conninfo
-from .token_provider import GoogleCloudTokenProvider
+
 from .cloud_sql import DEFAULT_TIMEOUT, CloudSqlInstance, IpType, Timeout
+from .token_provider import GoogleCloudTokenProvider
 
 
 class GoogleCloudConnInfoProvider:
@@ -32,7 +32,7 @@ class GoogleCloudConnInfoProvider:
         conninfo: str,
         instance_connection_name: str | None = None,
         ip_type: IpType = IpType.PUBLIC,
-        token_provider: Optional[GoogleCloudTokenProvider] = None,
+        token_provider: GoogleCloudTokenProvider | None = None,
         enable_iam_auth: bool = True,
         timeout: Timeout = DEFAULT_TIMEOUT,
     ) -> None:

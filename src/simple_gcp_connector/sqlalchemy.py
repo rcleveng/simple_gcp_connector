@@ -1,8 +1,10 @@
-from typing import Union, Optional
+from typing import Union
+
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
-from .token_provider import GoogleCloudTokenProvider
+
 from .cloud_sql import DEFAULT_TIMEOUT, CloudSqlInstance, IpType, Timeout
+from .token_provider import GoogleCloudTokenProvider
 
 try:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -12,8 +14,8 @@ except ImportError:
 
 def register_connector(
     engine: Union[Engine, "AsyncEngine"],
-    token_provider: Optional[GoogleCloudTokenProvider] = None,
-    instance_connection_name: Optional[str] = None,
+    token_provider: GoogleCloudTokenProvider | None = None,
+    instance_connection_name: str | None = None,
     ip_type: IpType = IpType.PUBLIC,
     enable_iam_auth: bool = True,
     timeout: Timeout = DEFAULT_TIMEOUT,
@@ -38,7 +40,7 @@ def register_connector(
         engine = create_engine("postgresql+psycopg://user@/db")
         register_connector(engine, instance_connection_name="my-proj:us-central1:my-inst")
     """
-    host: Optional[str] = None
+    host: str | None = None
     if instance_connection_name:
         cloud_sql_instance = CloudSqlInstance(instance_connection_name, timeout=timeout)
         host = cloud_sql_instance.get_host(ip_type)
@@ -48,7 +50,11 @@ def register_connector(
 
     # AsyncEngine does not support event listeners directly;
     # register on the underlying sync_engine instead.
-    event_target = engine.sync_engine if AsyncEngine and isinstance(engine, AsyncEngine) else engine
+    event_target = (
+        engine.sync_engine
+        if AsyncEngine and isinstance(engine, AsyncEngine)
+        else engine
+    )
 
     @event.listens_for(event_target, "do_connect")
     def receive_do_connect(dialect, conn_rec, cargs, cparams):

@@ -1,8 +1,9 @@
+from enum import StrEnum
+
 import google.auth
 from google.auth.transport import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
-from enum import StrEnum
 
 SQLADMIN_API_ENDPOINT = "https://sqladmin.googleapis.com"
 

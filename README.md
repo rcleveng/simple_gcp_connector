@@ -31,20 +31,17 @@ from simple_gcp_connector.psycopg import GoogleCloudConnInfoProvider
 
 # Use the instance connection name (project:region:instance).
 INSTANCE_CONNECTION_NAME = "my-project:us-central1:my-instance"
-DB_USER = "your-sa-email@your-project.iam" # note there is no .gserviceaccount.com
-DB_NAME = "your-database-name" # likely postgres
+DB_USER = "your-sa-email@your-project.iam"  # note there is no .gserviceaccount.com
+DB_NAME = "your-database-name"  # likely postgres
 DATABASE_URL = f"postgresql://{DB_USER}@IGNORED-HOST/{DB_NAME}?sslmode=require"
+
 
 def create_pool():
     get_conninfo = GoogleCloudConnInfoProvider(
-        DATABASE_URL,
-        instance_connection_name=INSTANCE_CONNECTION_NAME
+        DATABASE_URL, instance_connection_name=INSTANCE_CONNECTION_NAME
     )
-    return ConnectionPool(
-        conninfo=get_conninfo,
-        min_size=1,
-        max_size=5
-    )
+    return ConnectionPool(conninfo=get_conninfo, min_size=1, max_size=5)
+
 
 # Usage
 with create_pool() as pool:
@@ -73,8 +70,7 @@ DB_USER = "your-sa-email@your-project.iam"
 DB_NAME = "your-database-name"
 
 engine = create_engine(
-    f"postgresql+psycopg://{DB_USER}@/{DB_NAME}",
-    connect_args={"sslmode": "require"}
+    f"postgresql+psycopg://{DB_USER}@/{DB_NAME}", connect_args={"sslmode": "require"}
 )
 
 register_connector(engine, instance_connection_name=INSTANCE_CONNECTION_NAME)
