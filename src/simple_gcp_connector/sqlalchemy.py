@@ -1,19 +1,13 @@
-from typing import Union
-
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from .cloud_sql import DEFAULT_TIMEOUT, CloudSqlInstance, IpType, Timeout
 from .token_provider import GoogleCloudTokenProvider
 
-try:
-    from sqlalchemy.ext.asyncio import AsyncEngine
-except ImportError:
-    AsyncEngine = None
-
 
 def register_connector(
-    engine: Union[Engine, "AsyncEngine"],
+    engine: Engine | AsyncEngine,
     token_provider: GoogleCloudTokenProvider | None = None,
     instance_connection_name: str | None = None,
     ip_type: IpType = IpType.PUBLIC,
@@ -53,15 +47,11 @@ def register_connector(
 
     # AsyncEngine does not support event listeners directly;
     # register on the underlying sync_engine instead.
-    event_target = (
-        engine.sync_engine
-        if AsyncEngine and isinstance(engine, AsyncEngine)
-        else engine
-    )
+    event_target = engine.sync_engine if isinstance(engine, AsyncEngine) else engine
 
     @event.listens_for(event_target, "do_connect")
     def receive_do_connect(dialect, conn_rec, cargs, cparams):
         if host:
             cparams["host"] = host
-        if enable_iam_auth:
+        if enable_iam_auth and token_provider is not None:
             cparams["password"] = token_provider.get_token()

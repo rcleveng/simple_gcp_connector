@@ -131,7 +131,7 @@ Tasks run through [ux](https://github.com/lairoai/ux) (`go install github.com/la
 
 ```sh
 uv sync --all-extras --dev
-ux lint    # ruff check + ruff format --check
+ux lint    # ruff check + ruff format --check + ty check src
 ux test    # pytest (integration tests are deselected by default)
 ux build   # uv build
 ```

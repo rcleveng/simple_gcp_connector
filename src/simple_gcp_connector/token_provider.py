@@ -30,7 +30,7 @@ class GoogleCloudTokenProvider:
     ):
         self.scopes = scopes or CLOUDSQL_IAM_LOGIN_SCOPE
         self.timeout = timeout
-        self._credentials: Credentials = None
+        self._credentials: Credentials | None = None
 
     def get_token(self) -> str:
         """
@@ -44,4 +44,8 @@ class GoogleCloudTokenProvider:
             # Same approach AuthorizedSession uses to bound its own refreshes.
             self._credentials.refresh(partial(requests.Request(), timeout=self.timeout))
 
-        return self._credentials.token
+        token = self._credentials.token
+        if token is None:
+            raise RuntimeError("Google auth credentials did not provide a token")
+
+        return token

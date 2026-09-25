@@ -33,6 +33,7 @@ dev = [
     "tool>=0.8.0",
     "twine>=6.2.0",
     "ruff>=0.16.9",
+    "ty>=0.0.84",
 ]
 
 [tool.pytest.ini_options]
