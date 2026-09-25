@@ -184,6 +184,28 @@ def test_a_read_timeout_is_enforced_and_retried(server, fake_auth, mock_sleep):
     assert len(server.paths) == 2
 
 
+def test_the_admin_api_lookup_bounds_the_credential_refresh(server, monkeypatch):
+    """The configured timeout also reaches the credential refresh that the
+    Admin API request triggers: a token endpoint that takes 2s to answer fails
+    after the 0.2s read timeout with google-auth's TransportError, before the
+    Admin API is ever called."""
+
+    class SlowEndpointCredentials(FakeCredentials):
+        def refresh(self, request):
+            request(url=f"{server.url}/token", method="POST")
+            self.token = "fake-token"
+
+    server.script = [(200, {}, 2.0)]
+    monkeypatch.setattr(
+        "google.auth.default", lambda scopes=None: (SlowEndpointCredentials(), None)
+    )
+
+    with pytest.raises(google.auth.exceptions.TransportError):
+        CloudSqlInstance("project:region:instance", timeout=(1.0, 0.2))
+
+    assert server.paths == ["/token"]
+
+
 def test_connection_errors_are_retried_then_raised(monkeypatch, fake_auth, mock_sleep):
     """When nothing listens on the Admin API port, the connection is retried
     with backoff and the constructor finally raises requests.ConnectionError."""
