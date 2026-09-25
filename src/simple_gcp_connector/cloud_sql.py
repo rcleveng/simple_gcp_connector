@@ -17,6 +17,7 @@ RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
 
 
 class IpType(StrEnum):
+    PRIMARY = "PRIMARY"
     PUBLIC = "PRIMARY"
     PRIVATE = "PRIVATE"
 
@@ -109,7 +110,7 @@ class CloudSqlInstance:
         response.raise_for_status()
         return response.json()
 
-    def get_host(self, ip_type: IpType = IpType.PUBLIC) -> str:
+    def get_host(self, ip_type: IpType = IpType.PRIMARY) -> str:
         """
         Fetches the IP address of the Cloud SQL instance from stored metadata.
         """

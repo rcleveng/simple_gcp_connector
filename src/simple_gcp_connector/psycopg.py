@@ -19,7 +19,7 @@ class GoogleCloudConnInfoProvider:
             "postgresql://user@/db",
             project="my-project",
             instance="my-instance",
-            ip_type=IpType.PUBLIC
+            ip_type=IpType.PRIMARY
         )
         pool = ConnectionPool(conninfo=get_conninfo)
 
@@ -32,7 +32,7 @@ class GoogleCloudConnInfoProvider:
         self,
         conninfo: str,
         instance_connection_name: str | None = None,
-        ip_type: IpType = IpType.PUBLIC,
+        ip_type: IpType = IpType.PRIMARY,
         token_provider: GoogleCloudTokenProvider | None = None,
         enable_iam_auth: bool = True,
         timeout: Timeout = DEFAULT_TIMEOUT,
